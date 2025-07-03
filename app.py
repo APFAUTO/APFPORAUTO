@@ -17,6 +17,7 @@ from utils import read_ws, find_vertical, get_order_total, extract_line_items, t
 from po_counter import increment_po, current_po, po_counter_path
 
 # Configuration
+print("Vercel ENV DEBUG:", dict(os.environ))
 UPLOAD_FOLDER = "static/uploads"
 ON_VERCEL = os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME") or os.environ.get("VERCEL_ENV")
 if not ON_VERCEL:
