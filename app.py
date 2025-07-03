@@ -18,6 +18,8 @@ from po_counter import increment_po, current_po, po_counter_path
 
 # Configuration
 UPLOAD_FOLDER = "static/uploads"
+if os.environ.get("VERCEL") is None:
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'msg', 'eml'}
 MAX_FILE_SIZE = 16 * 1024 * 1024  # 16MB
 RECORDS_PER_PAGE = 10
@@ -33,10 +35,6 @@ app.config.update(
     MAX_CONTENT_LENGTH=MAX_FILE_SIZE,
     SECRET_KEY=os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 )
-
-# Ensure upload directory exists
-if os.environ.get("VERCEL") is None:
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
 def allowed_file(filename: str) -> bool:
