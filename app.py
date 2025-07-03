@@ -18,7 +18,8 @@ from po_counter import increment_po, current_po, po_counter_path
 
 # Configuration
 UPLOAD_FOLDER = "static/uploads"
-if os.environ.get("VERCEL") is None:
+ON_VERCEL = os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME") or os.environ.get("VERCEL_ENV")
+if not ON_VERCEL:
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'msg', 'eml'}
 MAX_FILE_SIZE = 16 * 1024 * 1024  # 16MB
