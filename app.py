@@ -348,6 +348,10 @@ def get_paginated_records(page: int, search_query: str = '') -> Tuple[List[POR],
         return [], {}
 
 
+@app.route('/test')
+def test():
+    return "App is working! Database connection: " + str(session is not None)
+
 @app.route('/', methods=['GET', 'POST'])
 def upload():
     """Handle file upload and processing."""
