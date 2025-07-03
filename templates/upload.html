@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Harbour POR Upload</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='1.1') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/yourkitid.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="harbour-scene">
+        <div class="upload-card">
+            <h1>⚓ POR Upload</h1>
+            
+            <form method="post" enctype="multipart/form-data" id="uploadForm">
+                <div class="drag-drop-area" id="dragDropArea">
+                    <div class="drag-drop-content">
+                        <div class="upload-icon">📁</div>
+                        <h3>Drag & Drop your file here</h3>
+                        <p>or</p>
+                        <button type="button" class="browse-btn" onclick="document.getElementById('fileInput').click()">
+                            Browse Files
+                        </button>
+                        <p class="file-info">Supported formats: .xlsx, .xls, .msg, .eml</p>
+                    </div>
+                    <input type="file" name="file" id="fileInput" accept=".xlsx,.xls,.msg,.eml" style="display: none;">
+                </div>
+                
+                <div class="file-preview" id="filePreview" style="display: none;">
+                    <div class="selected-file">
+                        <span class="file-name" id="fileName"></span>
+                        <button type="button" class="remove-file" onclick="removeFile()">×</button>
+                    </div>
+                </div>
+                
+                <button type="submit" class="upload-btn" id="uploadBtn" disabled>
+                    🚢 Upload File
+                </button>
+            </form>
+            
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="message" style="margin-top: 20px;">
+                            {% if category == 'success' %}
+                                <div style="background: #d4edda; color: #155724; border: 1px solid #c3e6cb;">
+                                    {{ message }}
+                                </div>
+                            {% else %}
+                                <div style="background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
+                                    {{ message }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <div class="navigation-links" style="margin-top: 30px; text-align: center;">
+                <a href="/view" class="nav-link">📋 View Records</a>
+                <a href="/change-batch" class="nav-link">⚙️ Batch: {{ current_po }}</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dragDropArea = document.getElementById('dragDropArea');
+        const fileInput = document.getElementById('fileInput');
+        const filePreview = document.getElementById('filePreview');
+        const fileName = document.getElementById('fileName');
+        const uploadBtn = document.getElementById('uploadBtn');
+
+        // Make the entire drag drop area and all its content clickable
+        dragDropArea.addEventListener('click', function(e) {
+            // Don't trigger if clicking on the browse button or remove button
+            if (e.target.classList.contains('browse-btn') || e.target.classList.contains('remove-file')) {
+                return;
+            }
+            fileInput.click();
+        });
+
+        // Also make individual text elements clickable
+        const clickableElements = dragDropArea.querySelectorAll('h3, p, .upload-icon, .file-info');
+        clickableElements.forEach(element => {
+            element.addEventListener('click', function(e) {
+                e.stopPropagation(); // Prevent double triggering
+                fileInput.click();
+            });
+        });
+
+        // Drag and drop functionality
+        dragDropArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dragDropArea.classList.add('dragover');
+        });
+
+        dragDropArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            dragDropArea.classList.remove('dragover');
+        });
+
+        dragDropArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dragDropArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        // File input change
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            // Check file type
+            const allowedTypes = ['.xlsx', '.xls', '.msg', '.eml'];
+            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+            
+            if (!allowedTypes.includes(fileExtension)) {
+                alert('Please select a valid file (.xlsx, .xls, .msg, or .eml)');
+                return;
+            }
+
+            // Display file info
+            fileName.textContent = file.name;
+            filePreview.style.display = 'block';
+            uploadBtn.disabled = false;
+            
+            // Update drag drop area
+            dragDropArea.classList.add('file-selected');
+        }
+
+        function removeFile() {
+            fileInput.value = '';
+            filePreview.style.display = 'none';
+            uploadBtn.disabled = true;
+            dragDropArea.classList.remove('file-selected');
+        }
+
+        // Form submission
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            if (!fileInput.files.length) {
+                e.preventDefault();
+                alert('Please select a file to upload');
+            }
+        });
+    </script>
+</body>
+</html> 

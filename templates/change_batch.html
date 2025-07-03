@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Change Batch Settings</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='1.1') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="harbour-scene">
+        <div class="upload-card">
+            <h1>⚓ Set Starting PO</h1>
+            
+            <form method="post" style="margin-top: 20px;">
+                <div style="margin-bottom: 20px;">
+                    <label for="po_number" style="display: block; margin-bottom: 10px; color: #022b3a; font-weight: 500;">
+                        Enter new starting PO number:
+                    </label>
+                    <input type="number" name="po_number" id="po_number" min="1" 
+                           placeholder="Enter new starting PO" required
+                           style="width: 100%; padding: 12px; border: 2px solid #3e8ed0; border-radius: 10px; font-size: 16px; box-sizing: border-box;">
+                </div>
+                
+                <button type="submit" class="upload-btn" style="margin-bottom: 15px;">
+                    💾 Save Changes
+                </button>
+                
+                <a href="/" class="nav-link" style="display: block; text-align: center;">
+                    🔙 Back to Upload
+                </a>
+            </form>
+            
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="message" style="margin-top: 20px;">
+                            {% if category == 'success' %}
+                                <div style="background: #d4edda; color: #155724; border: 1px solid #c3e6cb;">
+                                    {{ message }}
+                                </div>
+                            {% else %}
+                                <div style="background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
+                                    {{ message }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+</body>
+</html> 
