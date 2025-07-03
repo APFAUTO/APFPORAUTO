@@ -1,6 +1,8 @@
 import os
 from docx import Document
 
+# os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 print(f"Current directory: {os.getcwd()}")
 print(f"File exists: {os.path.exists('AP POR PARSING MAP.docx')}")
 print(f"File size: {os.path.getsize('AP POR PARSING MAP.docx')} bytes")
