@@ -92,8 +92,12 @@ def set_po_value(value: int) -> bool:
     if value < 1:
         return False
     session = get_session()
-    counter = get_or_create_batch_counter(session)
-    counter.value = value
+    counter = session.query(BatchCounter).first()
+    if not counter:
+        counter = BatchCounter(value=value)
+        session.add(counter)
+    else:
+        counter.value = value
     session.commit()
     session.close()
     return True
