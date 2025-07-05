@@ -184,10 +184,24 @@ def get_session():
     Session = sessionmaker(bind=engine)
     return Session()
 
-
 # Create global session for the application
 session = get_session()
 
 # Initialize database on import
 if __name__ == '__main__':
     init_database() 
+
+    from sqlalchemy import Sequence
+
+class BatchCounter(Base):
+    __tablename__ = "batch_counter"
+    id = Column(Integer, primary_key=True)
+    value = Column(Integer, nullable=False)
+
+def get_or_create_batch_counter(session):
+    counter = session.query(BatchCounter).first()
+    if not counter:
+        counter = BatchCounter(value=1)
+        session.add(counter)
+        session.commit()
+    return counter
