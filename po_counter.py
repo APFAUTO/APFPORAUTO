@@ -88,8 +88,15 @@ def increment_po() -> int:
 
 
 def set_po_value(value: int) -> bool:
-    """Set PO counter to specific value."""
-    return _po_counter.set_value(value)
+    """Set PO counter to specific value in the database."""
+    if value < 1:
+        return False
+    session = get_session()
+    counter = get_or_create_batch_counter(session)
+    counter.value = value
+    session.commit()
+    session.close()
+    return True
 
 
 # Backward compatibility
