@@ -8,13 +8,17 @@ import logging
 from datetime import datetime, timezone
 from typing import Optional, Tuple, List
 
+from models import BatchCounter
+from models import Base, engine
+Base.metadata.create_all(engine)
+
 from flask import Flask, request, render_template, flash, redirect, url_for, send_file
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
 
 from models import POR, session, PORFile
 from utils import read_ws, find_vertical, get_order_total, extract_line_items, to_float, stringify
-from po_counter import increment_po, current_po, po_counter_path
+from po_counter import increment_po, current_po, po_counter_path, set_po_value
 
 # Configuration
 UPLOAD_FOLDER = "static/uploads"
@@ -420,16 +424,19 @@ def view():
 
 @app.route('/change-batch', methods=['GET', 'POST'])
 def change_batch():
+    print("CHANGE BATCH ROUTE HIT")
     """Handle batch number updates."""
     if request.method == 'POST':
         try:
             new_po = request.form.get('po_number', '').strip()
+            logger.info(f"[DEBUG] /change-batch POST hit. new_po from form: {new_po}")
             
             if not new_po:
                 flash("❌ Please enter a PO number", 'error')
             else:
                 try:
                     new_po = int(new_po)
+                    logger.info(f"[DEBUG] Parsed new_po as int: {new_po}")
                     if new_po < 1:
                         flash("❌ PO number must be greater than 0", 'error')
                     else:
@@ -438,9 +445,13 @@ def change_batch():
                         current_po = new_po
                         with open(po_counter_path, 'w') as f:
                             f.write(str(new_po))
+                        logger.info(f"[DEBUG] Calling set_po_value({new_po})")
+                        set_po_value(new_po)
+                        logger.info(f"[DEBUG] set_po_value({new_po}) called successfully")
                         flash(f"✅ Starting PO set to {new_po}", 'success')
                         
                 except ValueError:
+                    logger.error(f"[DEBUG] ValueError for new_po: {new_po}")
                     flash("❌ Invalid PO number format", 'error')
                     
         except Exception as e:

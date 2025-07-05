@@ -12,6 +12,8 @@ from sqlalchemy.pool import StaticPool
 # Database configuration
 DATABASE_URL = os.environ.get('DATABASE_URL', "sqlite:///por.db")
 
+print("Using database at:", DATABASE_URL)
+
 # Handle Railway's PostgreSQL URL format
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
@@ -27,6 +29,20 @@ engine = create_engine(
 
 # Create declarative base
 Base = declarative_base()
+
+
+class BatchCounter(Base):
+    __tablename__ = "batch_counter"
+    id = Column(Integer, primary_key=True)
+    value = Column(Integer, nullable=False)
+
+def get_or_create_batch_counter(session):
+    counter = session.query(BatchCounter).first()
+    if not counter:
+        counter = BatchCounter(value=1)
+        session.add(counter)
+        session.commit()
+    return counter
 
 
 class POR(Base):
@@ -192,16 +208,3 @@ if __name__ == '__main__':
     init_database() 
 
     from sqlalchemy import Sequence
-
-class BatchCounter(Base):
-    __tablename__ = "batch_counter"
-    id = Column(Integer, primary_key=True)
-    value = Column(Integer, nullable=False)
-
-def get_or_create_batch_counter(session):
-    counter = session.query(BatchCounter).first()
-    if not counter:
-        counter = BatchCounter(value=1)
-        session.add(counter)
-        session.commit()
-    return counter

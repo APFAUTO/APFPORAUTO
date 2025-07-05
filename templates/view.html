@@ -233,20 +233,86 @@
         </div>
     </div>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Handle editable boxes (main POR fields)
-        document.querySelectorAll('.editable-box').forEach(function(box) {
-            box.addEventListener('click', function() {
-                startEditing(box, 'por');
+            document.addEventListener('DOMContentLoaded', function() {
+            // Handle editable boxes (main POR fields)
+            document.querySelectorAll('.editable-box').forEach(function(box) {
+                box.addEventListener('click', function(e) {
+                    // Check if the click target is the editable text span
+                    const textSpan = box.querySelector('.editable-text');
+                    if (e.target === textSpan) {
+                        // Clicked on the text - start editing
+                        startEditing(box, 'por');
+                    } else {
+                        // Clicked anywhere else in the box - copy to clipboard
+                        copyToClipboard(box);
+                    }
+                });
             });
-        });
-        
-        // Handle editable cells (line items)
-        document.querySelectorAll('.editable-cell').forEach(function(cell) {
-            cell.addEventListener('click', function() {
-                startEditing(cell, 'line_item');
+            
+            // Handle editable cells (line items)
+            document.querySelectorAll('.editable-cell').forEach(function(cell) {
+                cell.addEventListener('click', function(e) {
+                    // Check if the click target is the editable text span
+                    const textSpan = cell.querySelector('.editable-text');
+                    if (e.target === textSpan) {
+                        // Clicked on the text - start editing
+                        startEditing(cell, 'line_item');
+                    } else {
+                        // Clicked anywhere else in the cell - copy to clipboard
+                        copyToClipboard(cell);
+                    }
+                });
             });
-        });
+            
+            // Function to copy content to clipboard
+            function copyToClipboard(element) {
+                const textSpan = element.querySelector('.editable-text');
+                const textToCopy = textSpan ? textSpan.textContent.trim() : '';
+                
+                if (textToCopy && textToCopy !== 'N/A') {
+                    navigator.clipboard.writeText(textToCopy).then(function() {
+                        // Show copy success indicator
+                        showCopySuccess(element);
+                    }).catch(function(err) {
+                        console.error('Could not copy text: ', err);
+                        // Fallback for older browsers
+                        const textArea = document.createElement('textarea');
+                        textArea.value = textToCopy;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        showCopySuccess(element);
+                    });
+                }
+            }
+            
+            function showCopySuccess(element) {
+                // Add a temporary copy success indicator
+                const copyIndicator = document.createElement('span');
+                copyIndicator.textContent = '📋';
+                copyIndicator.style.cssText = `
+                    position: absolute;
+                    top: 8px;
+                    right: 8px;
+                    font-size: 1.1em;
+                    background: rgba(255, 255, 255, 0.9);
+                    border-radius: 50%;
+                    width: 20px;
+                    height: 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10;
+                `;
+                element.appendChild(copyIndicator);
+                
+                setTimeout(() => { 
+                    if (element.contains(copyIndicator)) {
+                        element.removeChild(copyIndicator);
+                    }
+                }, 1200);
+            }
         
         function startEditing(element, type) {
             const currentValue = element.getAttribute('data-value');
@@ -367,7 +433,9 @@
                 const input = element.querySelector('.edit-input');
                 textSpan.textContent = originalText;
                 textSpan.style.display = '';
-                element.removeChild(input);
+                if (input && input.parentNode) {
+                    input.parentNode.removeChild(input);
+                }
             });
         }
         
