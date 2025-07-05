@@ -6,6 +6,7 @@ Handles incrementing and persisting Purchase Order numbers.
 import os
 import threading
 from typing import Optional
+from models import get_session, BatchCounter, get_or_create_batch_counter
 
 # Configuration
 STARTING_PO = 1000
@@ -77,7 +78,13 @@ def get_current_po() -> int:
 
 def increment_po() -> int:
     """Increment and return next PO number."""
-    return _po_counter.increment()
+    session = get_session()
+    counter = get_or_create_batch_counter(session)
+    counter.value += 1
+    session.commit()
+    po_number = counter.value
+    session.close()
+    return po_number
 
 
 def set_po_value(value: int) -> bool:
