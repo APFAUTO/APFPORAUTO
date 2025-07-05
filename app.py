@@ -19,6 +19,9 @@ from po_counter import increment_po, current_po, po_counter_path
 # Configuration
 UPLOAD_FOLDER = "static/uploads"
 
+# Ensure the upload folder exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'msg', 'eml'}
 MAX_FILE_SIZE = 16 * 1024 * 1024  # 16MB
 RECORDS_PER_PAGE = 10
