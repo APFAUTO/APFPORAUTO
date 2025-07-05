@@ -10,11 +10,15 @@ from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from sqlalchemy.pool import StaticPool
 
 # Database configuration
-DB_PATH = os.environ.get('DATABASE_URL', "sqlite:///por.db")
+DATABASE_URL = os.environ.get('DATABASE_URL', "sqlite:///por.db")
+
+# Handle Railway's PostgreSQL URL format
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 # Create engine with optimized settings
 engine = create_engine(
-    DB_PATH,
+    DATABASE_URL,
     future=True,
     poolclass=StaticPool,  # Better for single-threaded apps
     pool_pre_ping=True,    # Verify connections before use

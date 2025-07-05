@@ -17,9 +17,8 @@ from utils import read_ws, find_vertical, get_order_total, extract_line_items, t
 from po_counter import increment_po, current_po, po_counter_path
 
 # Configuration
-print("Vercel ENV DEBUG:", dict(os.environ))
 UPLOAD_FOLDER = "static/uploads"
-ON_VERCEL = os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME") or os.environ.get("VERCEL_ENV")
+
 ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'msg', 'eml'}
 MAX_FILE_SIZE = 16 * 1024 * 1024  # 16MB
 RECORDS_PER_PAGE = 10
@@ -110,10 +109,14 @@ def process_excel_file(file) -> Tuple[bool, str, Optional[dict], Optional[list]]
         po_number = increment_po()
         safe_filename = secure_filename(f'PO_{po_number}_{date_order}_{requestor.replace(" ", "_")}.xlsx')
         
-        # Save file
-        file.seek(0)
-        file_path = os.path.join(UPLOAD_FOLDER, safe_filename)
-        file.save(file_path)
+        # Save file locally
+        try:
+            file.seek(0)
+            file_path = os.path.join(UPLOAD_FOLDER, safe_filename)
+            file.save(file_path)
+        except Exception as e:
+            logger.error(f"Error saving file: {str(e)}")
+            return False, f"❌ Error saving file: {str(e)}", None, None
         
         # Extract line items
         header_row = next((i for i, r in enumerate(ws.iter_rows(values_only=True), 1) 
@@ -173,12 +176,17 @@ def process_email_file(file) -> Tuple[bool, str, Optional[dict], Optional[list]]
         po_number = increment_po()
         date_order = datetime.now().strftime('%d/%m/%Y')
         
-        # Save original email file
-        file.seek(0)
+        # Save file locally
         original_filename = secure_filename(file.filename)
         safe_filename = secure_filename(f'PO_{po_number}_{date_order}_EMAIL_{original_filename}')
-        file_path = os.path.join(UPLOAD_FOLDER, safe_filename)
-        file.save(file_path)
+        
+        try:
+            file.seek(0)
+            file_path = os.path.join(UPLOAD_FOLDER, safe_filename)
+            file.save(file_path)
+        except Exception as e:
+            logger.error(f"Error saving email file: {str(e)}")
+            return False, f"❌ Error saving email file: {str(e)}", None, None
         
         # Parse email content
         file.seek(0)
@@ -484,8 +492,6 @@ def attach_files(por_id):
                         file_path = os.path.join(UPLOAD_FOLDER, safe_filename)
                         file.save(file_path)
                         logger.info(f"File saved to: {file_path}")
-                        
-                        # Get file size
                         file_size = os.path.getsize(file_path)
                         logger.info(f"File size: {file_size} bytes")
                         
@@ -544,6 +550,8 @@ def download_file(file_id):
         if not por_file:
             flash("❌ File not found", 'error')
             return redirect(url_for('view'))
+        
+
         
         file_path = os.path.join(UPLOAD_FOLDER, por_file.stored_filename)
         
@@ -737,8 +745,6 @@ def attach_email_to_por(por_id):
         # Save file
         file_path = os.path.join(UPLOAD_FOLDER, safe_filename)
         file.save(file_path)
-        
-        # Get file size
         file_size = os.path.getsize(file_path)
         
         # Parse email content for description
@@ -803,4 +809,5 @@ def internal_error(error):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)
